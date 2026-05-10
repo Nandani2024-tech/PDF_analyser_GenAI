@@ -1,4 +1,4 @@
-import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/huggingface_transformers";
+import { OpenAIEmbeddings } from "@langchain/openai";
 import { getCollection } from "./chroma";
 import Groq from "groq-sdk";
 
@@ -7,9 +7,9 @@ const groq = new Groq({
 });
 
 export async function answerQuestion(question: string) {
-  // 1. Embed the question using local HuggingFace Transformers
-  const embeddings = new HuggingFaceTransformersEmbeddings({
-    model: "Xenova/all-MiniLM-L6-v2",
+  // 1. Embed the question using OpenAI Embeddings
+  const embeddings = new OpenAIEmbeddings({
+    modelName: "text-embedding-3-small",
   });
   const queryEmbedding = await embeddings.embedQuery(question);
 
