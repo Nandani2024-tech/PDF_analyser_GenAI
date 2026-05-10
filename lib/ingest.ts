@@ -1,13 +1,14 @@
-import { WebPDFLoader } from "@langchain/community/document_loaders/web/pdf";
+import pdf from "pdf-parse";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
 import { getCollection } from "./chroma";
 
 export async function ingestPDF(file: Blob, filename: string): Promise<{ chunkCount: number }> {
-  // 1. Load with WebPDFLoader — Vercel Serverless safe!
-  const loader = new WebPDFLoader(file);
-  const rawDocs = await loader.load();
-
+  // 1. Manually parse PDF to bypass Langchain's broken Vercel integration
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const data = await pdf(buffer);
+  const text = data.text;
+  
   // 2. Chunk with RecursiveCharacterTextSplitter
   // Why these values? 
   // chunkSize: 500 characters strikes a good balance between providing enough context 
@@ -19,7 +20,7 @@ export async function ingestPDF(file: Blob, filename: string): Promise<{ chunkCo
     chunkOverlap: 50,
   });
   
-  const docs = await textSplitter.splitDocuments(rawDocs);
+  const docs = await textSplitter.createDocuments([text], [{ source: filename }]);
 
   // 3. Embed with HuggingFace Free Inference API
   const embeddings = new HuggingFaceInferenceEmbeddings({
