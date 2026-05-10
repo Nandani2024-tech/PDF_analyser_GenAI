@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["pdf-parse", "chromadb"],
+  serverExternalPackages: ["chromadb"],
 };
 
 export default nextConfig;
