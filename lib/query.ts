@@ -1,4 +1,4 @@
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/huggingface";
 import { getCollection } from "./chroma";
 import Groq from "groq-sdk";
 
@@ -7,9 +7,10 @@ const groq = new Groq({
 });
 
 export async function answerQuestion(question: string) {
-  // 1. Embed the question using OpenAI Embeddings
-  const embeddings = new OpenAIEmbeddings({
-    modelName: "text-embedding-3-small",
+  // 1. Embed the question using HuggingFace Free Inference API
+  const embeddings = new HuggingFaceInferenceEmbeddings({
+    model: "sentence-transformers/all-MiniLM-L6-v2",
+    apiKey: process.env.HF_TOKEN,
   });
   const queryEmbedding = await embeddings.embedQuery(question);
 
