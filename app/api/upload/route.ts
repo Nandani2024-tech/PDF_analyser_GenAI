@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, unlink, mkdir } from "fs/promises";
-import path from "path";
-import os from "os";
 import { ingestPDF } from "@/lib/ingest";
 
 export async function POST(request: NextRequest) {
@@ -18,26 +15,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File exceeds 20MB limit." }, { status: 400 });
     }
 
-    // Prepare temp directory (fallback to OS temp dir for cross-platform compatibility)
-    const tmpDir = process.platform === "win32" ? path.join(os.tmpdir(), "pdf-insight-ai-tmp") : "/tmp";
-    if (process.platform === "win32") {
-      await mkdir(tmpDir, { recursive: true });
-    }
-
-    // 2. Write file to /tmp/<timestamp>-<name> using fs.writeFile
-    const timestamp = Date.now();
-    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-    const tempFilePath = path.join(tmpDir, `${timestamp}-${safeName}`);
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(tempFilePath, buffer);
-
     try {
-      // 3. Call ingestPDF()
-      const { chunkCount } = await ingestPDF(tempFilePath, file.name);
-
-      // 4. Delete the temp file after ingestion
-      await unlink(tempFilePath);
+      // 3. Call ingestPDF() directly with the file blob - no temp files!
+      const { chunkCount } = await ingestPDF(file, file.name);
 
       // 5. Return NextResponse.json
       return NextResponse.json(
@@ -45,8 +25,6 @@ export async function POST(request: NextRequest) {
         { status: 200 }
       );
     } catch (ingestionError: any) {
-      // Cleanup on error
-      await unlink(tempFilePath).catch(() => {});
       console.error("Ingestion failed:", ingestionError);
       return NextResponse.json(
         { error: "Failed to process and ingest PDF.", details: ingestionError.message },

@@ -1,11 +1,11 @@
-import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { WebPDFLoader } from "@langchain/community/document_loaders/web/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
 import { getCollection } from "./chroma";
 
-export async function ingestPDF(filePath: string, filename: string): Promise<{ chunkCount: number }> {
-  // 1. Load with PDFLoader — preserves page metadata
-  const loader = new PDFLoader(filePath);
+export async function ingestPDF(file: Blob, filename: string): Promise<{ chunkCount: number }> {
+  // 1. Load with WebPDFLoader — Vercel Serverless safe!
+  const loader = new WebPDFLoader(file);
   const rawDocs = await loader.load();
 
   // 2. Chunk with RecursiveCharacterTextSplitter
